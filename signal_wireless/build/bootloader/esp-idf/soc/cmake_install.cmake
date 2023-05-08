@@ -39,6 +39,6 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("D:/Dev/oficina/signal_wireless/build/bootloader/esp-idf/soc/esp32/cmake_install.cmake")
+  include("D:/Dev/esp_now_signal_wireless/signal_wireless/build/bootloader/esp-idf/soc/esp32/cmake_install.cmake")
 endif()
 

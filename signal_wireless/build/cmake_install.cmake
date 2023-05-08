@@ -1,4 +1,4 @@
-# Install script for directory: D:/Dev/oficina/signal_wireless
+# Install script for directory: D:/Dev/esp_now_signal_wireless/signal_wireless
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -39,7 +39,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("D:/Dev/oficina/signal_wireless/build/esp-idf/cmake_install.cmake")
+  include("D:/Dev/esp_now_signal_wireless/signal_wireless/build/esp-idf/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "D:/Dev/oficina/signal_wireless/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "D:/Dev/esp_now_signal_wireless/signal_wireless/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")
