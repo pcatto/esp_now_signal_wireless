@@ -29,6 +29,7 @@
 #include "esp_now.h"
 #include "esp_crc.h"
 #include "espnow_example.h"
+#include "driver/gpio.h"
 
 #define ESPNOW_MAXDELAY 512
 
@@ -38,6 +39,8 @@ static QueueHandle_t s_example_espnow_queue;
 
 static uint8_t s_example_broadcast_mac[ESP_NOW_ETH_ALEN] = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF };
 static uint16_t s_example_espnow_seq[EXAMPLE_ESPNOW_DATA_MAX] = { 0, 0 };
+
+uint8_t value_payload = 0b00000000;
 
 static void example_espnow_deinit(example_espnow_send_param_t *send_param);
 
@@ -141,9 +144,9 @@ void example_espnow_data_prepare(example_espnow_send_param_t *send_param)
     buf->seq_num = s_example_espnow_seq[buf->type]++;
     buf->crc = 0;
     buf->magic = send_param->magic;
-    /* Fill all remaining bytes after the data with random values */
-    //esp_fill_random(buf->payload, send_param->len - sizeof(example_espnow_data_t));
-    buf->payload[0] = s_example_espnow_seq[buf->type]++;
+
+    buf->payload[0] = value_payload;                  // Dado a ser passado
+
     buf->crc = esp_crc16_le(UINT16_MAX, (uint8_t const *)buf, send_param->len);
 }
 
@@ -176,18 +179,28 @@ static void example_espnow_task(void *pvParameter)
 
                 ESP_LOGD(TAG, "Send data to "MACSTR", status1: %d", MAC2STR(send_cb->mac_addr), send_cb->status);
 
+
+
+                // if(value_payload > 255) 
+                //     value_payload = 0;
+                // else    
+                //     value_payload++;
+
+
+
+
                 if (is_broadcast && (send_param->broadcast == false)) {
                     break;
                 }
 
-                if (!is_broadcast) {
-                    send_param->count--;
-                    if (send_param->count == 0) {
-                        ESP_LOGI(TAG, "Send done");
-                        example_espnow_deinit(send_param);
-                        vTaskDelete(NULL);
-                    }
-                }
+                // if (!is_broadcast) {
+                //     send_param->count--;
+                //     if (send_param->count == 0) {
+                //         ESP_LOGI(TAG, "Send done");
+                //         example_espnow_deinit(send_param);
+                //         vTaskDelete(NULL);
+                //     }
+                // }
 
                 /* Delay a while before sending the next data. */
                 if (send_param->delay > 0) {
