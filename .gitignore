@@ -1,2 +1,4 @@
 /signal_wireless/build/*
 /signal_wireless_sender/build/*
+/signal_wireless/build
+/signal_wireless_sender/build
