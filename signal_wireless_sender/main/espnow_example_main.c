@@ -65,43 +65,61 @@ static void gpio_task_example(void *arg)
             {
                 gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_DISABLE);
             }
-            else if(io_num == GPIO_INPUT_IO_1)
+            if (io_num == GPIO_INPUT_IO_1)
             {
                 gpio_set_intr_type(GPIO_INPUT_IO_1, GPIO_INTR_DISABLE);
             }
-            else if(io_num == GPIO_INPUT_IO_2)
+            if (io_num == GPIO_INPUT_IO_2)
             {
                 gpio_set_intr_type(GPIO_INPUT_IO_2, GPIO_INTR_DISABLE);
             }
-            else if(io_num == GPIO_INPUT_IO_3)
+            if (io_num == GPIO_INPUT_IO_3)
             {
                 gpio_set_intr_type(GPIO_INPUT_IO_3, GPIO_INTR_DISABLE);
             }
 
-
             vTaskDelay(20 / portTICK_PERIOD_MS);
-            while (gpio_get_level(io_num) == 0)
+            while (gpio_get_level(GPIO_INPUT_IO_0) == 0 || gpio_get_level(GPIO_INPUT_IO_1) == 0 || gpio_get_level(GPIO_INPUT_IO_2) == 0 || gpio_get_level(GPIO_INPUT_IO_3) == 0)
             {
                 // printf("val: %d\n", gpio_get_level(io_num));
-                if (io_num == GPIO_INPUT_IO_0)
+                if (gpio_get_level(GPIO_INPUT_IO_0) == 0)
                 {
-                    value_payload = 0b00000001;
+                    value_payload |= 0b00000001;
                 }
-                else if(io_num == GPIO_INPUT_IO_1)
+                else
                 {
-                    value_payload = 0b00000010;
+                    value_payload &= 0b11111110;
                 }
-                else if(io_num == GPIO_INPUT_IO_2)
+                if (gpio_get_level(GPIO_INPUT_IO_1) == 0)
                 {
-                    value_payload = 0b00000011;
+                    value_payload |= 0b00000010;
                 }
-                else if(io_num == GPIO_INPUT_IO_3)
+                else
                 {
-                    value_payload = 0b00000100;
+                    value_payload &= 0b11111101;
                 }
-                printf("GPIO[%" PRIu32 "] intr, val: %d\n", io_num, gpio_get_level(io_num));
+                if (gpio_get_level(GPIO_INPUT_IO_2) == 0)
+                {
+                    value_payload |= 0b00000100;
+                }
+                else
+                {
+                    value_payload &= 0b11111011;
+                }
+                if (gpio_get_level(GPIO_INPUT_IO_3) == 0)
+                {
+                    value_payload |= 0b00001000;
+                }
+                else
+                {
+                    value_payload &= 0b11110111;
+                }
+
+                // printf("GPIO[%" PRIu32 "] intr, val: %d\n", io_num, gpio_get_level(io_num));
             }
+
             value_payload = 0b00000000;
+
             gpio_set_intr_type(GPIO_INPUT_IO_0, GPIO_INTR_NEGEDGE);
             gpio_set_intr_type(GPIO_INPUT_IO_1, GPIO_INTR_NEGEDGE);
             gpio_set_intr_type(GPIO_INPUT_IO_2, GPIO_INTR_NEGEDGE);
@@ -501,7 +519,7 @@ void app_main(void)
     gpio_set_intr_type(GPIO_INPUT_IO_1, GPIO_INTR_NEGEDGE);
     gpio_set_intr_type(GPIO_INPUT_IO_2, GPIO_INTR_NEGEDGE);
     gpio_set_intr_type(GPIO_INPUT_IO_3, GPIO_INTR_NEGEDGE);
-    
+
     // create a queue to handle gpio event from isr
     gpio_evt_queue = xQueueCreate(32, sizeof(uint32_t));
     // start gpio task
@@ -514,7 +532,6 @@ void app_main(void)
     gpio_isr_handler_add(GPIO_INPUT_IO_1, gpio_isr_handler, (void *)GPIO_INPUT_IO_1);
     gpio_isr_handler_add(GPIO_INPUT_IO_2, gpio_isr_handler, (void *)GPIO_INPUT_IO_2);
     gpio_isr_handler_add(GPIO_INPUT_IO_3, gpio_isr_handler, (void *)GPIO_INPUT_IO_3);
-
 
     printf("Minimum free heap size: %" PRIu32 " bytes\n", esp_get_minimum_free_heap_size());
 
