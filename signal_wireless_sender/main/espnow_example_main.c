@@ -280,7 +280,7 @@ static void example_espnow_task(void *pvParameter)
             example_espnow_event_send_cb_t *send_cb = &evt.info.send_cb;
             is_broadcast = IS_BROADCAST_ADDR(send_cb->mac_addr);
 
-            ESP_LOGD(TAG, "Send data to " MACSTR ", status1: %d", MAC2STR(send_cb->mac_addr), send_cb->status);
+            // ESP_LOGD(TAG, "Send data to " MACSTR ", status1: %d", MAC2STR(send_cb->mac_addr), send_cb->status);
 
             // if(value_payload > 255)
             //     value_payload = 0;
