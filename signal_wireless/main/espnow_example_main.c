@@ -238,27 +238,6 @@ static void example_espnow_task(void *pvParameter)
 
             ret = example_espnow_data_parse(recv_cb->data, recv_cb->data_len, &recv_state, &recv_seq, &recv_magic, &payload);
 
-            printf("Receive payload: %X\n", payload);
-
-            if (payload & 0b00000001)
-                gpio_set_level(GPIO_OUTPUT_IO_0, 1);
-            else
-                gpio_set_level(GPIO_OUTPUT_IO_0, 0);
-            if (payload & 0b00000010)
-                gpio_set_level(GPIO_OUTPUT_IO_1, 1);
-            else
-                gpio_set_level(GPIO_OUTPUT_IO_1, 0);
-            if (payload & 0b00000100)
-                gpio_set_level(GPIO_OUTPUT_IO_2, 1);
-            else
-                gpio_set_level(GPIO_OUTPUT_IO_2, 0);
-            if (payload & 0b00001000)
-            {
-                gpio_set_level(GPIO_OUTPUT_IO_3, 1);
-            }
-            else
-                gpio_set_level(GPIO_OUTPUT_IO_3, 0);
-
             free(recv_cb->data);
             if (ret == EXAMPLE_ESPNOW_DATA_BROADCAST)
             {
@@ -325,7 +304,26 @@ static void example_espnow_task(void *pvParameter)
             else if (ret == EXAMPLE_ESPNOW_DATA_UNICAST)
             {
                 // ESP_LOGI(TAG, "Receive %dth unicast data from: "MACSTR", len: %d", recv_seq, MAC2STR(recv_cb->mac_addr), recv_cb->data_len);
+                printf("Receive payload: %X\n", payload);
 
+                if (payload & 0b00000001)
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 1);
+                else
+                    gpio_set_level(GPIO_OUTPUT_IO_0, 0);
+                if (payload & 0b00000010)
+                    gpio_set_level(GPIO_OUTPUT_IO_1, 1);
+                else
+                    gpio_set_level(GPIO_OUTPUT_IO_1, 0);
+                if (payload & 0b00000100)
+                    gpio_set_level(GPIO_OUTPUT_IO_2, 1);
+                else
+                    gpio_set_level(GPIO_OUTPUT_IO_2, 0);
+                if (payload & 0b00001000)
+                {
+                    gpio_set_level(GPIO_OUTPUT_IO_3, 1);
+                }
+                else
+                    gpio_set_level(GPIO_OUTPUT_IO_3, 0);
                 /* If receive unicast ESPNOW data, also stop sending broadcast ESPNOW data. */
                 send_param->broadcast = false;
             }
