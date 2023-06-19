@@ -259,8 +259,8 @@ static void example_espnow_task(void *pvParameter)
     bool is_broadcast = false;
     int ret;
 
-    vTaskDelay(5000 / portTICK_PERIOD_MS);
-    ESP_LOGI(TAG, "Start sending broadcast data");
+    vTaskDelay(10000 / portTICK_PERIOD_MS);
+    // ESP_LOGI(TAG, "Start sending broadcast data");
 
     /* Start sending broadcast ESPNOW data. */
     example_espnow_send_param_t *send_param = (example_espnow_send_param_t *)pvParameter;
@@ -287,7 +287,7 @@ static void example_espnow_task(void *pvParameter)
             // else
             //     value_payload++;
 
-            if (is_broadcast && (send_param->broadcast == false))
+            if (is_broadcast || (send_param->unicast == false && send_param->broadcast == false))
             {
                 break;
             }
@@ -321,6 +321,7 @@ static void example_espnow_task(void *pvParameter)
             }
             break;
         }
+
         case EXAMPLE_ESPNOW_RECV_CB:
         {
             example_espnow_event_recv_cb_t *recv_cb = &evt.info.recv_cb;
@@ -402,6 +403,7 @@ static void example_espnow_task(void *pvParameter)
             }
             break;
         }
+        
         default:
             ESP_LOGE(TAG, "Callback type error: %d", evt.id);
             break;
@@ -458,7 +460,7 @@ static esp_err_t example_espnow_init(void)
     }
     memset(send_param, 0, sizeof(example_espnow_send_param_t));
     send_param->unicast = false;
-    send_param->broadcast = true;
+    send_param->broadcast = false;
     send_param->state = 0;
     send_param->magic = 10;
     send_param->count = CONFIG_ESPNOW_SEND_COUNT;
