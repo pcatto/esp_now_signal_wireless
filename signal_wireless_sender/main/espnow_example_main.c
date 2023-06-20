@@ -31,6 +31,10 @@
 #include "espnow_example.h"
 #include "driver/gpio.h"
 
+/* Chave atribuida ao valor a ser escrito e lido
+   da partição NVS */
+#define CHAVE_NVS "teste"
+
 #define ESPNOW_MAXDELAY 512
 
 #define GPIO_INPUT_IO_0 4
@@ -403,7 +407,7 @@ static void example_espnow_task(void *pvParameter)
             }
             break;
         }
-        
+
         default:
             ESP_LOGE(TAG, "Callback type error: %d", evt.id);
             break;
@@ -492,8 +496,111 @@ static void example_espnow_deinit(example_espnow_send_param_t *send_param)
     esp_now_deinit();
 }
 
+/* Função: grava na NVS um dado do tipo interio 32-bits
+ *         sem sinal, na chave definida em CHAVE_NVS
+ * Parâmetros: dado a ser gravado
+ * Retorno: nenhum
+ */
+void grava_dado_nvs(char *dado)
+{
+    nvs_handle handler_particao_nvs;
+    esp_err_t err;
+    //  uint8_t s_example_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+    err = nvs_flash_init_partition("nvs");
+
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Falha ao iniciar partição NVS.");
+        return;
+    }
+
+    err = nvs_open_from_partition("nvs", "ns_nvs", NVS_READWRITE, &handler_particao_nvs);
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Falha ao abrir NVS como escrita/leitura");
+        return;
+    }
+
+    /* Atualiza valor do horimetro total */
+    err = nvs_set_str(handler_particao_nvs, CHAVE_NVS, dado);
+
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Erro ao gravar horimetro");
+        nvs_close(handler_particao_nvs);
+        return;
+    }
+    else
+    {
+        printf("Dado gravado com sucesso!\n");
+        nvs_commit(handler_particao_nvs);
+        nvs_close(handler_particao_nvs);
+    }
+}
+
+/* Função: le da NVS um dado do tipo interio 32-bits
+ *         sem sinal, contido na chave definida em CHAVE_NVS
+ * Parâmetros: nenhum
+ * Retorno: dado lido
+ */
+char dado_lido[ESP_NOW_ETH_ALEN];
+char *le_dado_nvs(void)
+{
+
+    size_t length = 6;
+    nvs_handle handler_particao_nvs;
+    esp_err_t err;
+
+    err = nvs_flash_init_partition("nvs");
+
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Falha ao iniciar partição NVS.");
+        return 0;
+    }
+
+    err = nvs_open_from_partition("nvs", "ns_nvs", NVS_READONLY, &handler_particao_nvs);
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Falha ao abrir NVS como escrita/leitura");
+        return 0;
+    }
+
+    /* Faz a leitura do dado associado a chave definida em CHAVE_NVS */
+    printf("Dado lido com sucesso 1!\n");
+    err = nvs_get_str(handler_particao_nvs, CHAVE_NVS, dado_lido, &length);
+
+    printf("Dado lido com sucesso 2!\n");
+    if (err != ESP_OK)
+    {
+        printf("[ERRO] Falha ao fazer leitura do dado");
+        return 0;
+    }
+    else
+    {
+        printf("Dado lido com sucesso!\n");
+        nvs_close(handler_particao_nvs);
+        return dado_lido;
+    }
+}
 void app_main(void)
 {
+    // char *dado_a_ser_escrito = "abcde";
+    uint8_t *dado_a_ser_escrito[ESP_NOW_ETH_ALEN] = {97, 97, 98, 99, 100, 101};
+
+    char dado_lido[ESP_NOW_ETH_ALEN + 1];
+
+    /* Escreve na NVS (na chave definida em CHAVE_NVS)
+       o valor da variável "dado_a_ser_escrito" */
+    grava_dado_nvs((char *)dado_a_ser_escrito);
+
+    /* Le da NVS (na chave definida em CHAVE_NVS)
+   o valor escrito e compara com o que foi escrito */
+    strcpy(dado_lido, le_dado_nvs());
+
+    // strcat(dado_lido,fim);
+    printf("%c\n\n", dado_lido[5]);
+
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
     if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND)
