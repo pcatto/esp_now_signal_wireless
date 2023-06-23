@@ -496,16 +496,37 @@ static void example_espnow_deinit(example_espnow_send_param_t *send_param)
     esp_now_deinit();
 }
 
+uint64_t gravarVetor(uint8_t vetor[ESP_NOW_ETH_ALEN]) {
+    uint64_t valor = 0;
+    
+    for (int i = 0; i < ESP_NOW_ETH_ALEN; i++) {
+        printf("escreve: %lld \n", (uint64_t)valor);
+        valor |= (uint64_t)vetor[i] << (i * 32);
+        printf("escreve: %lld \n", (uint64_t)valor);
+    }
+    
+    return valor;
+}
+
+void desfazerConversao(uint64_t valor, uint8_t* vetor) {
+    for (int i = 0; i < ESP_NOW_ETH_ALEN; i++) {
+        vetor[i] = (uint8_t)(valor >> (i * 32));
+        printf("le: %02x \n", vetor[i]);
+    }
+}
+
 /* Função: grava na NVS um dado do tipo interio 32-bits
  *         sem sinal, na chave definida em CHAVE_NVS
  * Parâmetros: dado a ser gravado
  * Retorno: nenhum
  */
-void grava_dado_nvs(char *dado)
+void grava_dado_nvs(uint8_t dado[ESP_NOW_ETH_ALEN])
 {
     nvs_handle handler_particao_nvs;
     esp_err_t err;
-    //  uint8_t s_example_broadcast_mac[ESP_NOW_ETH_ALEN] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF}
+
+    uint64_t valor = gravarVetor(dado);
+
     err = nvs_flash_init_partition("nvs");
 
     if (err != ESP_OK)
@@ -521,8 +542,9 @@ void grava_dado_nvs(char *dado)
         return;
     }
 
-    /* Atualiza valor do horimetro total */
-    err = nvs_set_str(handler_particao_nvs, CHAVE_NVS, dado);
+
+    err = nvs_set_u64(handler_particao_nvs, CHAVE_NVS, valor);
+
 
     if (err != ESP_OK)
     {
@@ -543,11 +565,11 @@ void grava_dado_nvs(char *dado)
  * Parâmetros: nenhum
  * Retorno: dado lido
  */
-char dado_lido[ESP_NOW_ETH_ALEN];
-char *le_dado_nvs(void)
+uint64_t dado_lido;
+
+uint64_t le_dado_nvs(void)
 {
 
-    size_t length = 6;
     nvs_handle handler_particao_nvs;
     esp_err_t err;
 
@@ -559,7 +581,10 @@ char *le_dado_nvs(void)
         return 0;
     }
 
+
     err = nvs_open_from_partition("nvs", "ns_nvs", NVS_READONLY, &handler_particao_nvs);
+    
+    
     if (err != ESP_OK)
     {
         printf("[ERRO] Falha ao abrir NVS como escrita/leitura");
@@ -568,7 +593,7 @@ char *le_dado_nvs(void)
 
     /* Faz a leitura do dado associado a chave definida em CHAVE_NVS */
     printf("Dado lido com sucesso 1!\n");
-    err = nvs_get_str(handler_particao_nvs, CHAVE_NVS, dado_lido, &length);
+    err = nvs_get_u64(handler_particao_nvs, CHAVE_NVS, &dado_lido);
 
     printf("Dado lido com sucesso 2!\n");
     if (err != ESP_OK)
@@ -586,20 +611,25 @@ char *le_dado_nvs(void)
 void app_main(void)
 {
     // char *dado_a_ser_escrito = "abcde";
-    uint8_t *dado_a_ser_escrito[ESP_NOW_ETH_ALEN] = {97, 97, 98, 99, 100, 101};
-
-    char dado_lido[ESP_NOW_ETH_ALEN + 1];
+    uint8_t *dado_a_ser_escrito[ESP_NOW_ETH_ALEN] = {97, 98, 99, 100, 101, 102};
 
     /* Escreve na NVS (na chave definida em CHAVE_NVS)
        o valor da variável "dado_a_ser_escrito" */
-    grava_dado_nvs((char *)dado_a_ser_escrito);
+    grava_dado_nvs(dado_a_ser_escrito);
 
     /* Le da NVS (na chave definida em CHAVE_NVS)
    o valor escrito e compara com o que foi escrito */
-    strcpy(dado_lido, le_dado_nvs());
+    uint8_t dado[ESP_NOW_ETH_ALEN];
 
-    // strcat(dado_lido,fim);
-    printf("%c\n\n", dado_lido[5]);
+    desfazerConversao(le_dado_nvs(), dado);
+    
+    
+    printf("a:%c\n", dado[0]);
+    printf("b:%c\n", dado[1]);
+    printf("c:%c\n", dado[2]);
+    printf("d:%c\n", dado[3]);
+    printf("e:%c\n", dado[4]);
+    printf("f:%c\n\n", dado[5]);
 
     // Initialize NVS
     esp_err_t ret = nvs_flash_init();
